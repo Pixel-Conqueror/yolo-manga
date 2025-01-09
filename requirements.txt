@@ -1,0 +1,5 @@
+ipykernel 
+notebook 
+ultralytics
+pytesseract 
+opencv-python-headless
