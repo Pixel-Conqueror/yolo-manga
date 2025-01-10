@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 import os
+from flask_cors import CORS
 import cv2
 from ultralytics import YOLO
 import pytesseract
@@ -9,6 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app, resources={r"/upload": {"origins": "http://localhost:3000"}})  # Activer CORS pour /upload
 
 # Configuration
 UPLOAD_FOLDER = 'uploads'

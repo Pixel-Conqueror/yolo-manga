@@ -5,22 +5,43 @@ import './styles.css';
 const App = () => {
   const [image, setImage] = useState(null);
   const [translatedImage, setTranslatedImage] = useState(null);
+  const [file, setFile] = useState(null); // Stocker le fichier original
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setImage(imageUrl);
+      setFile(file); // Stocker le fichier pour la requête
       setTranslatedImage(null); // Réinitialiser l'image traduite
     }
   };
 
-  const handleTranslate = () => {
-    setTimeout(() => {
-      setTranslatedImage(
-        'https://www.mangaread.org/wp-content/uploads/WP-manga/data/manga_5db9315acf069/e3448963f2f35d0b5e1e02d90d48acdd/10.jpeg'
-      );
-    }, 2000); // Simulation de délai (2 secondes)
+  const handleTranslate = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        console.error('Erreur lors de la requête vers l\'API :', response);
+        throw new Error('Erreur lors de la traduction de l\'image');
+      }
+
+      // Lire le contenu binaire de l'image
+      const blob = await response.blob();
+      const translatedImageUrl = URL.createObjectURL(blob);
+      setTranslatedImage(translatedImageUrl);
+    } catch (error) {
+      console.error('Erreur lors de la requête vers l\'API :', error);
+      alert('Une erreur est survenue lors de la traduction de l\'image.');
+    }
   };
 
   const handleDownload = () => {
