@@ -22,7 +22,7 @@ os.makedirs(RESULT_FOLDER, exist_ok=True)
 # Load models
 ocr_model = pytesseract
 translation_pipeline = pipeline("translation_en_to_fr", model="Helsinki-NLP/opus-mt-en-fr")
-yolo_model = YOLO('best.pt')  # Replace with the path to your YOLO model
+yolo_model = YOLO('test.pt')  # Replace with the path to your YOLO model
 
 # Helper functions
 def allowed_file(filename):
@@ -58,21 +58,20 @@ def translate_texts(texts):
     return translations
 
 def insert_translations(image, translations):
-    """Overlay translated texts back into the bubbles with rounded shapes."""
+    """Overlay translated texts back into the bubbles by masking old text."""
     draw = ImageDraw.Draw(image)
 
     for bubble, text in translations:
         x1, y1, x2, y2 = bubble
         bubble_width = x2 - x1
         bubble_height = y2 - y1
-        radius = min(bubble_width, bubble_height) // 6  # Adjust roundness
 
         # Estimate font size based on bubble size and text length
         font_size = max(10, min(int(bubble_height / 2), int(bubble_width / len(text) * 1.5)))
-        font = ImageFont.load_default() if font_size < 12 else ImageFont.truetype("arial.ttf", font_size)
+        font = ImageFont.load_default(14) if font_size < 12 else ImageFont.truetype("arial.ttf", font_size)
 
-        # Fill the bubble with white and create rounded borders
-        draw.rounded_rectangle([(x1, y1), (x2, y2)], radius=radius, fill="white", outline="black", width=2)
+        # Mask the old text by filling the area with white
+        draw.rectangle([(x1, y1), (x2, y2)], fill="white")
 
         # Split text into lines to fit within the bubble width
         words = text.split()
