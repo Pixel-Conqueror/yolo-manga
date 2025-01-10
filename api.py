@@ -58,14 +58,48 @@ def translate_texts(texts):
     return translations
 
 def insert_translations(image, translations):
-    """Overlay translated texts back into the bubbles."""
+    """Overlay translated texts back into the bubbles with rounded shapes."""
     draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default()
 
     for bubble, text in translations:
         x1, y1, x2, y2 = bubble
-        draw.rectangle([(x1, y1), (x2, y2)], outline="black", width=2)
-        draw.text((x1 + 5, y1 + 5), text, fill="black", font=font)
+        bubble_width = x2 - x1
+        bubble_height = y2 - y1
+        radius = min(bubble_width, bubble_height) // 6  # Adjust roundness
+
+        # Estimate font size based on bubble size and text length
+        font_size = max(10, min(int(bubble_height / 2), int(bubble_width / len(text) * 1.5)))
+        font = ImageFont.load_default() if font_size < 12 else ImageFont.truetype("arial.ttf", font_size)
+
+        # Fill the bubble with white and create rounded borders
+        draw.rounded_rectangle([(x1, y1), (x2, y2)], radius=radius, fill="white", outline="black", width=2)
+
+        # Split text into lines to fit within the bubble width
+        words = text.split()
+        lines = []
+        line = ""
+
+        for word in words:
+            if draw.textlength(line + word, font=font) < bubble_width - 10:  # Padding for text
+                line += word + " "
+            else:
+                lines.append(line.strip())
+                line = word + " "
+
+        if line:
+            lines.append(line.strip())
+
+        # Calculate total text height to vertically center the lines
+        total_text_height = sum(
+            draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[1] for line in lines
+        )
+
+        text_y = y1 + (bubble_height - total_text_height) // 2  # Center text vertically
+        for line in lines:
+            text_width = draw.textbbox((0, 0), line, font=font)[2] - draw.textbbox((0, 0), line, font=font)[0]
+            text_x = x1 + (bubble_width - text_width) // 2  # Center text horizontally
+            draw.text((text_x, text_y), line, fill="black", font=font)
+            text_y += draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[1]
 
     return image
 
