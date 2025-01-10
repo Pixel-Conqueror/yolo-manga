@@ -65,10 +65,7 @@ def insert_translations(image, translations):
         x1, y1, x2, y2 = bubble
         bubble_width = x2 - x1
         bubble_height = y2 - y1
-
-        # Estimate font size based on bubble size and text length
-        font_size = max(10, min(int(bubble_height / 2), int(bubble_width / len(text) * 1.5)))
-        font = ImageFont.load_default(14) if font_size < 12 else ImageFont.truetype("arial.ttf", font_size)
+        font = ImageFont.load_default(16)
 
         # Mask the old text by filling the area with white
         draw.rectangle([(x1, y1), (x2, y2)], fill="white")
